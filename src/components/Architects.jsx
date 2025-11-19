@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import AvatarLowPoly from './AvatarLowPoly';
 
 const team = [
   {
@@ -53,10 +54,14 @@ export default function Architects() {
               }`}
             >
               <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-br from-white/5 to-transparent" />
-              {/* Image placeholder */}
-              <div className="h-36 rounded-xl bg-gradient-to-br from-slate-800/70 to-slate-900/70 ring-1 ring-cyan-400/20 mb-4 grid place-items-center">
-                {/* <img src="/team-placeholder-1.jpg" alt="" className="h-full w-full object-cover rounded-xl"/> */}
-                <div className="h-12 w-12 rounded-full bg-cyan-500/20 ring-2 ring-cyan-400/40" />
+              <div className="mb-4">
+                {t.recruiting ? (
+                  <div className="h-36 rounded-xl bg-gradient-to-br from-amber-400/10 to-transparent ring-1 ring-amber-400/50 grid place-items-center">
+                    <span className="text-amber-200 text-xs uppercase tracking-[0.3em]">Open Slot</span>
+                  </div>
+                ) : (
+                  <AvatarLowPoly className="h-36 w-full rounded-xl" />
+                )}
               </div>
               <div className="relative">
                 <p className="text-white font-semibold">{t.name}</p>
