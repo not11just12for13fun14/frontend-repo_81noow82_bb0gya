@@ -1,25 +1,36 @@
 import { Menu, LogIn, ShieldAlert, Rocket, Lock, Radio } from "lucide-react";
 import { motion } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 
-const TICKER_ITEMS = [
-  "MILITECH +2.4%",
-  "ARASAKA -0.8%",
-  "KANG TAO +5.1%",
-  "NETWATCH +1.2%",
-  "TRAUMA TEAM +3.7%",
-  "NEBULA SYS +4.4%",
+const COMPANIES = [
+  "MILITECH",
+  "ARASAKA",
+  "KANG TAO",
+  "NETWATCH",
+  "TRAUMA TEAM",
+  "NEBULA SYS",
+  "PETROCHEM",
+  "BIOTECHNA",
 ];
+
+function generateInitialTickers() {
+  return COMPANIES.map((name) => ({
+    name,
+    change: +(Math.random() * 6 - 3).toFixed(1), // -3.0% to +3.0%
+  }));
+}
 
 export default function Header() {
   const tickerRef = useRef(null);
+  const [tickers, setTickers] = useState(generateInitialTickers);
 
+  // Animate marquee movement (aggressive speed)
   useEffect(() => {
     if (!tickerRef.current) return;
     const el = tickerRef.current;
     let frame;
     let x = 0;
-    const speed = 0.9; // faster for aggressive vibe
+    const speed = 1.2; // faster for aggressive vibe
 
     const step = () => {
       x -= speed;
@@ -32,26 +43,50 @@ export default function Header() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  // Live updates (random walk) for ticker values
+  useEffect(() => {
+    const id = setInterval(() => {
+      setTickers((prev) =>
+        prev.map((t) => {
+          const delta = +(Math.random() * 1.4 - 0.7).toFixed(1); // -0.7%..+0.7%
+          let next = t.change + delta;
+          // clamp to a sensible window
+          if (next > 9.9) next = 9.9;
+          if (next < -9.9) next = -9.9;
+          return { ...t, change: +next.toFixed(1) };
+        })
+      );
+    }, 1400);
+    return () => clearInterval(id);
+  }, []);
+
+  const rendered = useMemo(() => {
+    return [...tickers, ...tickers].map((t, i) => {
+      const positive = t.change >= 0;
+      const sign = positive ? "+" : "";
+      const color = positive ? "text-cyan-300" : "text-red-300";
+      return (
+        <span key={i} className="px-6 text-[11px] leading-8 tracking-[0.2em] text-cyan-100/80">
+          <span className="text-cyan-200/90">{t.name}</span>
+          <span className={`ml-2 ${color}`}>{`${sign}${t.change.toFixed(1)}%`}</span>
+        </span>
+      );
+    });
+  }, [tickers]);
+
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/70 border-b border-cyan-400/30 shadow-[0_8px_30px_rgba(0,240,255,0.08)]">
       {/* Live Market Ticker */}
       <div className="relative overflow-hidden border-b border-cyan-400/20">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/10 to-transparent" />
         <div className="flex items-center gap-2 px-4 py-2 text-xs tracking-wider uppercase">
-          <Radio className="w-4 h-4 text-cyan-300" />
+          <Radio className="w-4 h-4 text-cyan-300 animate-pulse" />
           <span className="text-cyan-300/80">Live Market Ticker</span>
           <span className="ml-auto rounded-full border border-red-400/40 bg-red-500/10 px-2 py-0.5 text-[10px] tracking-[0.25em] text-red-200">Aggressive Mode</span>
         </div>
         <div className="relative w-full h-8">
           <div className="absolute flex whitespace-nowrap will-change-transform" ref={tickerRef}>
-            {[...TICKER_ITEMS, ...TICKER_ITEMS].map((t, i) => (
-              <span
-                key={i}
-                className="px-6 text-[11px] leading-8 tracking-[0.2em] text-cyan-100/80"
-              >
-                {t}
-              </span>
-            ))}
+            {rendered}
           </div>
         </div>
       </div>
